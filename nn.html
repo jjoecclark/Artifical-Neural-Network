@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>MNIST Digits Simples</title>
+    <script src="./MNIST loading library/mnist.js"></script>
+</head>
+<body>
+    <canvas id="Canvas" width="400" height="320"> <!--Width was 280-->
+        Your browser does not support the HTML5 canvas tag.
+    </canvas>
+    <br />
+    <button onClick="b1()">1 Epoch</button>
+    <button onClick="b2()">Test</button>
+    <button onClick="alert('Accuracy: ' + getAccuracy())">Test Accuracy</button>
+    <br />
+    Press '1 Epoch' to run 5000 training trials. Press 'Test' to have the network guess a handwritten digit that it has not seen during training. Press 'Test accuracy' to see how many novel digits it guesses correctly on average. Currently, the accuracy is very low. After a few epochs of training, it should increase to ~90%. Open the JavaScript console to see data from trails and tests. 
+        <script type="text/javascript" src="nn.js"></script>
+        <script>
+        	var canvas = document.getElementById("Canvas");
+        	var ctx = canvas.getContext("2d");
+
+        	var set = mnist.set(5000, 100); 
+        	var trainingSet = set.training;
+        	var testSet = set.test;
+
+        	var iterations = 0;
+
+        	var n = new Network(4, 784, 16, 10); 
+        	var draw = function(j, expected) {
+        		var a = [];
+        		for (var i = 0; i < 10; i++) {
+        			a.push(n.layers[n.layers.length - 1][i].value);
+        		}
+        		var stuff = arrayHighest(a);
+        		var actual = stuff.index; 
+        		ctx.fillText("Guess: " + actual + " (" + (Math.round(n.layers[n.layers.length - 1][actual].value * 100) / 100) + ")", 5, 315);
+        		ctx.font = "13px sans-serif";
+        		/*ctx.fillText("2nd Guess: " + stuff.secondHighest + " " + "(" + (Math.round(n.layers[n.layers.length - 1][stuff.secondHighest].value * 100) / 100) + ")", 115, 315);*/
+        		console.log(a);
+
+        		if (actual == expected) {
+        			ctx.fillStyle = "#73b904";
+        		} else {
+        			ctx.fillStyle = "red";
+        		}
+        		ctx.fillRect(240, 280, 40, 40);
+        	};
+
+        	var b1 = function() {
+        		for (var i = 0; i < trainingSet.length; i++) {
+        			n.forwardPass(trainingSet[i].input, trainingSet[i].output);
+        			n.backpropogate(trainingSet[i].output);
+        			iterations++;
+        		}
+        		console.log("Iterations: " + iterations + "; Accuracy: " + getAccuracy() + "; lr=" + n.lr);
+       		};
+
+        	var b2 = function() {
+        		//Forward pass random element from TEST set.
+        		var j = Math.floor(Math.random() * testSet.length);
+        		n.forwardPass(testSet[j].input, testSet[j].output);
+
+        		//Draw digit in question
+        		var x = 0;
+        		var y = 0;
+        		for (var i = 0; i < 784; i++) {
+        			if (i % 28 === 0) {
+        				y += 10;
+        				x = 0;
+        			}
+        			if (testSet[j].input[i] > 0) {
+        				ctx.fillStyle = "#000";
+        				ctx.fillRect(x, y, 10, 10);
+        				x += 10;
+        			} else {
+        				ctx.fillStyle = "#ccc";
+        				ctx.fillRect(x, y, 10, 10);
+        				x += 10;
+        			}
+        		}
+        		//Display guess, prediction, if correct etc.
+        		ctx.fillStyle = "gray";
+        		ctx.fillRect(0, 280, 280, 40);
+
+        		var expected = arrayHighest(testSet[j].output).index;
+        	
+        		ctx.fillStyle = "#fff";
+        		ctx.font = "15px sans-serif";
+        		ctx.fillText("Expected: " + expected, 5, 295);
+
+        		console.log(testSet[j].output);
+        		draw(j, expected);
+        	};
+
+       		var getAccuracy = function() {
+        		var totalCorrect = 0;
+        		for (var i = 0; i < 100; i++) { 
+        			n.forwardPass(testSet[i].input, testSet[i].output);
+        			var expected = arrayHighest(testSet[i].output).index;
+        			var a = [];
+        			for (var j = 0; j < 10; j++) {
+        				a.push(n.layers[n.layers.length - 1][j].value);
+        			}
+        			var stuff = arrayHighest(a);
+        			var actual = stuff.index; 
+        			if (actual == expected) {
+        				totalCorrect++;
+        			}
+        		}
+        		return totalCorrect / testSet.length;
+        	};
+            b2();
+        </script>
+</body>
+</html>

@@ -1,0 +1,5 @@
+This project is an artifical neural network that solves the MNIST database of handwritten digits. While the network was created from scratch in JavaScript, an open source third party library was used to load the handwritten digits in binary. 
+
+***'nn.js' contains the JavaScript code for the neural network.
+'nn.html' contains additional JavaScript code for the visual aspects of the page. 
+'MNIST loading library' contains the third party library used to load the MNIST digits. 
